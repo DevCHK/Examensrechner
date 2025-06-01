@@ -37,7 +37,6 @@
     .result {
       margin-top: 2em;
       font-size: 1.1em;
-      font-weight: bold;
       background-color: #ffffff;
       padding: 1em;
       border-radius: 5px;
@@ -54,39 +53,74 @@
   <h1>Notenrechner Sachsen-Anhalt</h1>
 
   <form id="notenForm">
-    <label>Strafrecht I (10 %):
+    <label>Strafrecht I:
       <input type="number" step="0.1" min="0" max="18" name="straf1" required />
     </label>
-    <label>Strafrecht II (10 %):
+    <label>Strafrecht II:
       <input type="number" step="0.1" min="0" max="18" name="straf2" required />
     </label>
-    <label>Zivilrecht I (10 %):
+    <label>Zivilrecht I:
       <input type="number" step="0.1" min="0" max="18" name="zivil1" required />
     </label>
-    <label>Zivilrecht II (10 %):
+    <label>Zivilrecht II:
       <input type="number" step="0.1" min="0" max="18" name="zivil2" required />
     </label>
-    <label>Öffentliches Recht I (10 %):
+    <label>Öffentliches Recht I:
       <input type="number" step="0.1" min="0" max="18" name="oeff1" required />
     </label>
-    <label>Öffentliches Recht II (10 %):
+    <label>Öffentliches Recht II:
       <input type="number" step="0.1" min="0" max="18" name="oeff2" required />
     </label>
-    <label>Mündliche Prüfung (40 %):
+    <label>Mündliche Prüfung:
       <input type="number" step="0.1" min="0" max="18" name="muendlich" required />
     </label>
-    <label>Schwerpunktarbeit (30 % der Gesamtnote):
+    <label>Schwerpunktarbeit:
       <input type="number" step="0.1" min="0" max="18" name="schwerpunkt" required />
     </label>
 
     <button type="submit">Gesamtnote berechnen</button>
   </form>
 
-  <div class="result" id="ergebnis"></div>
+  <div class="result" id="ergebnis">
+    <pre>
+Staatsteil:
+= (Strafrecht I + Strafrecht II + Zivilrecht I + Zivilrecht II + Öffentliches Recht I + Öffentliches Recht II) * 0.10
++ Mündliche Prüfung * 0.40 → davon 70 %
+
+Schwerpunkt:
+= Schwerpunktarbeit → davon 30 %
+
+Gesamtnote = Staatsteil * 70 % + Schwerpunkt * 30 %
+    </pre>
+  </div>
 
   <script>
     const form = document.getElementById("notenForm");
     const ergebnis = document.getElementById("ergebnis");
+
+    function berechneNotenstufe(punkte) {
+      const stufen = [
+        { note: "Sehr gut", min: 14 },
+        { note: "Gut", min: 11.5 },
+        { note: "Vollbefriedigend", min: 9 },
+        { note: "Befriedigend", min: 6.5 },
+        { note: "Ausreichend", min: 4 },
+        { note: "Mangelhaft", min: 1.5 },
+        { note: "Ungenügend", min: 0 }
+      ];
+
+      for (let i = 0; i < stufen.length; i++) {
+        if (punkte >= stufen[i].min) {
+          const aktuelleStufe = stufen[i];
+          const naechsteStufe = i > 0 ? stufen[i - 1] : null;
+          const punkteBisNaechste = naechsteStufe ? (naechsteStufe.min - punkte).toFixed(2) : null;
+          return {
+            stufe: aktuelleStufe.note,
+            bisNaechste: punkteBisNaechste
+          };
+        }
+      }
+    }
 
     form.addEventListener("submit", function(e) {
       e.preventDefault();
@@ -105,19 +139,22 @@
       const schwerpunkt_gewichtet = schwerpunkt * 0.3;
       const gesamt = staatsteil_gewichtet + schwerpunkt_gewichtet;
 
+      const stufenInfo = berechneNotenstufe(gesamt);
+
       ergebnis.innerHTML = `
-        <div>🎓 <strong>Gesamtnote: ${gesamt.toFixed(2)} Punkte</strong></div>
+        <div><strong>Gesamtnote: ${gesamt.toFixed(2)} Punkte</strong></div>
+        <div>Notenstufe: ${stufenInfo.stufe}</div>
+        ${stufenInfo.bisNaechste ? `<div>Noch ${stufenInfo.bisNaechste} Punkte bis "${stufenInfo.bisNaechste <= 0 ? "nächste Stufe erreicht" : stufenInfo.bisNaechste} zur nächsthöheren Stufe"</div>` : ""}
         <br/>
-        <div>📊 <u>Rechenweg:</u></div>
         <pre>
 Staatsteil:
-= (${form.straf1.value}×10% + ${form.straf2.value}×10% + ${form.zivil1.value}×10% + ${form.zivil2.value}×10% + ${form.oeff1.value}×10% + ${form.oeff2.value}×10% + ${form.muendlich.value}×40%)
-= ${staatsteil_roh.toFixed(2)} Punkte
-→ 70 % davon: ${staatsteil_gewichtet.toFixed(2)} Punkte
+= (${form.straf1.value} + ${form.straf2.value} + ${form.zivil1.value} + ${form.zivil2.value} + ${form.oeff1.value} + ${form.oeff2.value}) * 0.10
++ ${form.muendlich.value} * 0.40 = ${staatsteil_roh.toFixed(2)} Punkte
+→ davon 70 %: ${staatsteil_gewichtet.toFixed(2)} Punkte
 
 Schwerpunkt:
 = ${form.schwerpunkt.value} Punkte
-→ 30 % davon: ${schwerpunkt_gewichtet.toFixed(2)} Punkte
+→ davon 30 %: ${schwerpunkt_gewichtet.toFixed(2)} Punkte
 
 Gesamtnote:
 = ${staatsteil_gewichtet.toFixed(2)} + ${schwerpunkt_gewichtet.toFixed(2)} = ${gesamt.toFixed(2)} Punkte
