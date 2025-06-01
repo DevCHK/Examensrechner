@@ -5,20 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Notenrechner Stex (Sachsen-Anhalt)</title>
   <style>
+    :root {
+      --bg-color: #f9f9f9;
+      --text-color: #333;
+      --input-bg: #fff;
+      --accent-color: #0077cc;
+      --card-bg: #fff;
+      --scale-bg: #e6f2ff;
+      --highlight: #d0ebff;
+    }
+
+    body.dark {
+      --bg-color: #1e1e1e;
+      --text-color: #eee;
+      --input-bg: #2c2c2c;
+      --accent-color: #3399ff;
+      --card-bg: #2a2a2a;
+      --scale-bg: #264d73;
+      --highlight: #336699;
+    }
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       padding: 1em;
-      background-color: #f9f9f9;
+      background-color: var(--bg-color);
+      color: var(--text-color);
       max-width: 700px;
       margin: auto;
-      color: #333;
     }
 
     h1 {
       text-align: center;
       font-size: 1.6em;
-      margin-bottom: 0.5em;
-      color: #003366;
+      color: var(--accent-color);
     }
 
     label {
@@ -31,7 +50,9 @@
       width: 100%;
       padding: 0.6em;
       font-size: 1em;
-      border: 1px solid #ccc;
+      background: var(--input-bg);
+      border: 1px solid #888;
+      color: var(--text-color);
       border-radius: 5px;
       box-sizing: border-box;
     }
@@ -41,7 +62,7 @@
       width: 100%;
       padding: 1em;
       font-size: 1.1em;
-      background-color: #0077cc;
+      background-color: var(--accent-color);
       color: white;
       border: none;
       border-radius: 5px;
@@ -50,19 +71,19 @@
     .result {
       margin-top: 2em;
       padding: 1em;
-      background-color: #fff;
+      background-color: var(--card-bg);
       border-radius: 5px;
     }
 
     .highlight {
       font-weight: bold;
-      color: #0077cc;
+      color: var(--accent-color);
     }
 
     .notenstufe {
       margin-top: 1em;
       padding: 1em;
-      background: #e6f2ff;
+      background: var(--scale-bg);
       border-radius: 5px;
     }
 
@@ -73,26 +94,45 @@
 
     .notenstufe th, .notenstufe td {
       padding: 0.5em;
-      border-bottom: 1px solid #ccc;
+      border-bottom: 1px solid #aaa;
       text-align: left;
     }
 
     pre {
-      background-color: #efefef;
+      background-color: #444;
       padding: 1em;
       border-radius: 5px;
       white-space: pre-wrap;
       font-family: monospace;
       margin-top: 1em;
+      color: white;
     }
 
     .active-stufe {
-      background-color: #d0ebff;
+      background-color: var(--highlight);
       font-weight: bold;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1em;
+    }
+
+    .theme-toggle {
+      background: none;
+      border: none;
+      font-size: 1.4em;
+      cursor: pointer;
+      color: var(--accent-color);
     }
   </style>
 </head>
 <body>
+  <div class="topbar">
+    <button class="theme-toggle" id="themeToggle">🌙</button>
+  </div>
+
   <h1>Notenrechner Sachsen-Anhalt</h1>
 
   <form id="notenForm">
@@ -117,7 +157,7 @@
     <label>Mündliche Prüfung:
       <input type="number" step="0.01" name="mp" />
     </label>
-    <label>Schwerpunkt:
+    <label>Schwerpunktbereichsnote:
       <input type="number" step="0.01" name="sp" />
     </label>
 
@@ -148,6 +188,7 @@
     const noteDiv = document.getElementById("noteAnzeigen");
     const rechenweg = document.getElementById("rechenweg");
     const skala = document.getElementById("skala");
+    const toggle = document.getElementById("themeToggle");
 
     const notenstufen = [
       { stufe: "Sehr gut", von: 14.0, bis: 18.0 },
@@ -163,12 +204,12 @@
       e.preventDefault();
 
       const get = name => parseFloat(form[name].value) || 0;
-      const klausuren = ["s1", "s2", "z1", "z2", "ö1", "ö2"].map(get);
+      const klausuren = ["s1", "s2", "z1", "z2", "ö1", "ö2"].map(name => get(name));
       const mp = get("mp");
       const sp = get("sp");
 
       const staatsteil = (
-        klausuren.reduce((a, b) => a + b, 0) * (10 / 100) +
+        klausuren.reduce((a, b) => a + b, 0) * 0.1 +
         mp * 0.4
       );
 
@@ -178,7 +219,6 @@
       const stufe = notenstufen.find(n => gesamtGerundet >= n.von && gesamtGerundet <= n.bis);
       const nächste = notenstufen.find(n => n.von > gesamtGerundet);
 
-      // Rechenweg
       rechenweg.textContent = `Berechnung:
 
 Staatsteil = (${klausuren.join(" + ")} x 10%) + (${mp} x 40%) 
@@ -187,22 +227,25 @@ Staatsteil = (${klausuren.join(" + ")} x 10%) + (${mp} x 40%)
 Gesamtnote = (${staatsteil.toFixed(2)} x 70%) + (${sp} x 30%) 
             = ${gesamtGerundet.toFixed(2)} Punkte`;
 
-      // Ergebnistext
       noteDiv.innerHTML = `Gesamtnote: <span class="highlight">${gesamtGerundet.toFixed(2)}</span> Punkte<br />
 Notenstufe: <strong>${stufe.stufe}</strong>${nächste ? `<br />Noch ${Math.round((nächste.von - gesamtGerundet) * 100) / 100} Punkte bis "${nächste.stufe}"` : ""}`;
 
       ergebnis.style.display = "block";
 
-      // Hervorheben der passenden Stufe
       Array.from(skala.rows).forEach(row => {
         row.classList.remove("active-stufe");
         if (row.cells[0].textContent === stufe.stufe) {
           row.classList.add("active-stufe");
         }
       });
+
+      // Speicher Noten
+      ["s1", "s2", "z1", "z2", "ö1", "ö2", "mp", "sp"].forEach(name => {
+        localStorage.setItem(name, form[name].value);
+      });
     });
 
-    // Autofokus zum nächsten Feld bei Enter
+    // Autofokus zum nächsten Feld
     const inputs = Array.from(form.querySelectorAll("input"));
     inputs.forEach((input, index) => {
       input.addEventListener("keydown", function (e) {
@@ -212,7 +255,26 @@ Notenstufe: <strong>${stufe.stufe}</strong>${nächste ? `<br />Noch ${Math.round
           if (next) next.focus();
         }
       });
+
+      // Daten laden
+      const val = localStorage.getItem(input.name);
+      if (val !== null) input.value = val;
     });
+
+    // Dark Mode (System & Toggle)
+    function applyTheme(theme) {
+      document.body.classList.toggle("dark", theme === "dark");
+      toggle.textContent = theme === "dark" ? "☀️" : "🌙";
+    }
+
+    toggle.addEventListener("click", () => {
+      const isDark = document.body.classList.contains("dark");
+      applyTheme(isDark ? "light" : "dark");
+      localStorage.setItem("theme", isDark ? "light" : "dark");
+    });
+
+    const userPref = localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    applyTheme(userPref);
   </script>
 </body>
 </html>
