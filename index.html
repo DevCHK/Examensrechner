@@ -3,27 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notenrechner Stex Sachsen-Anhalt</title>
+  <title>Notenrechner Stex (Sachsen-Anhalt)</title>
   <style>
     body {
-      font-family: sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, sans-serif;
       padding: 1em;
-      background-color: #f0f0f0;
+      background-color: #f9f9f9;
       max-width: 700px;
       margin: auto;
+      color: #333;
     }
+
     h1 {
       text-align: center;
+      font-size: 1.6em;
+      margin-bottom: 0.5em;
+      color: #003366;
     }
+
     label {
       display: block;
       margin-top: 1em;
-    }
-    input {
-      width: 100%;
-      padding: 0.5em;
       font-size: 1em;
     }
+
+    input {
+      width: 100%;
+      padding: 0.6em;
+      font-size: 1em;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      box-sizing: border-box;
+    }
+
     button {
       margin-top: 2em;
       width: 100%;
@@ -34,18 +46,49 @@
       border: none;
       border-radius: 5px;
     }
+
     .result {
       margin-top: 2em;
-      font-size: 1.1em;
-      background-color: #ffffff;
       padding: 1em;
+      background-color: #fff;
       border-radius: 5px;
     }
+
+    .highlight {
+      font-weight: bold;
+      color: #0077cc;
+    }
+
+    .notenstufe {
+      margin-top: 1em;
+      padding: 1em;
+      background: #e6f2ff;
+      border-radius: 5px;
+    }
+
+    .notenstufe table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    .notenstufe th, .notenstufe td {
+      padding: 0.5em;
+      border-bottom: 1px solid #ccc;
+      text-align: left;
+    }
+
     pre {
-      background-color: #e0e0e0;
+      background-color: #efefef;
       padding: 1em;
       border-radius: 5px;
       white-space: pre-wrap;
+      font-family: monospace;
+      margin-top: 1em;
+    }
+
+    .active-stufe {
+      background-color: #d0ebff;
+      font-weight: bold;
     }
   </style>
 </head>
@@ -54,112 +97,121 @@
 
   <form id="notenForm">
     <label>Strafrecht I:
-      <input type="number" step="0.1" min="0" max="18" name="straf1" required />
+      <input type="number" step="0.01" name="s1" />
     </label>
     <label>Strafrecht II:
-      <input type="number" step="0.1" min="0" max="18" name="straf2" required />
+      <input type="number" step="0.01" name="s2" />
     </label>
     <label>Zivilrecht I:
-      <input type="number" step="0.1" min="0" max="18" name="zivil1" required />
+      <input type="number" step="0.01" name="z1" />
     </label>
     <label>Zivilrecht II:
-      <input type="number" step="0.1" min="0" max="18" name="zivil2" required />
+      <input type="number" step="0.01" name="z2" />
     </label>
     <label>Öffentliches Recht I:
-      <input type="number" step="0.1" min="0" max="18" name="oeff1" required />
+      <input type="number" step="0.01" name="ö1" />
     </label>
     <label>Öffentliches Recht II:
-      <input type="number" step="0.1" min="0" max="18" name="oeff2" required />
+      <input type="number" step="0.01" name="ö2" />
     </label>
     <label>Mündliche Prüfung:
-      <input type="number" step="0.1" min="0" max="18" name="muendlich" required />
+      <input type="number" step="0.01" name="mp" />
     </label>
-    <label>Schwerpunktarbeit:
-      <input type="number" step="0.1" min="0" max="18" name="schwerpunkt" required />
+    <label>Schwerpunktbereichsnote:
+      <input type="number" step="0.01" name="sp" />
     </label>
 
-    <button type="submit">Gesamtnote berechnen</button>
+    <button type="submit">Berechne Gesamtnote</button>
   </form>
 
-  <div class="result" id="ergebnis">
-    <pre>
-Staatsteil:
-= (Strafrecht I + Strafrecht II + Zivilrecht I + Zivilrecht II + Öffentliches Recht I + Öffentliches Recht II) * 0.10
-+ Mündliche Prüfung * 0.40 → davon 70 %
+  <div class="result" id="ergebnis" style="display:none;">
+    <div id="noteAnzeigen"></div>
+    <pre id="rechenweg"></pre>
 
-Schwerpunkt:
-= Schwerpunktarbeit → davon 30 %
-
-Gesamtnote = Staatsteil * 70 % + Schwerpunkt * 30 %
-    </pre>
+    <div class="notenstufe">
+      <strong>Notenskala:</strong>
+      <table id="skala">
+        <tr><td>Sehr gut</td><td>14.00 – 18.00</td></tr>
+        <tr><td>Gut</td><td>11.50 – 13.99</td></tr>
+        <tr><td>Vollbefriedigend (VB)</td><td>9.00 – 11.49</td></tr>
+        <tr><td>Befriedigend</td><td>6.50 – 8.99</td></tr>
+        <tr><td>Ausreichend</td><td>4.00 – 6.49</td></tr>
+        <tr><td>Mangelhaft</td><td>1.50 – 3.99</td></tr>
+        <tr><td>Ungenügend</td><td>0.00 – 1.49</td></tr>
+      </table>
+    </div>
   </div>
 
   <script>
     const form = document.getElementById("notenForm");
     const ergebnis = document.getElementById("ergebnis");
+    const noteDiv = document.getElementById("noteAnzeigen");
+    const rechenweg = document.getElementById("rechenweg");
+    const skala = document.getElementById("skala");
 
-    function berechneNotenstufe(punkte) {
-      const stufen = [
-        { note: "Sehr gut", min: 14 },
-        { note: "Gut", min: 11.5 },
-        { note: "Vollbefriedigend", min: 9 },
-        { note: "Befriedigend", min: 6.5 },
-        { note: "Ausreichend", min: 4 },
-        { note: "Mangelhaft", min: 1.5 },
-        { note: "Ungenügend", min: 0 }
-      ];
+    const notenstufen = [
+      { stufe: "Sehr gut", von: 14.0, bis: 18.0 },
+      { stufe: "Gut", von: 11.5, bis: 13.99 },
+      { stufe: "Vollbefriedigend (VB)", von: 9.0, bis: 11.49 },
+      { stufe: "Befriedigend", von: 6.5, bis: 8.99 },
+      { stufe: "Ausreichend", von: 4.0, bis: 6.49 },
+      { stufe: "Mangelhaft", von: 1.5, bis: 3.99 },
+      { stufe: "Ungenügend", von: 0.0, bis: 1.49 }
+    ];
 
-      for (let i = 0; i < stufen.length; i++) {
-        if (punkte >= stufen[i].min) {
-          const aktuelleStufe = stufen[i];
-          const naechsteStufe = i > 0 ? stufen[i - 1] : null;
-          const punkteBisNaechste = naechsteStufe ? (naechsteStufe.min - punkte).toFixed(2) : null;
-          return {
-            stufe: aktuelleStufe.note,
-            bisNaechste: punkteBisNaechste
-          };
-        }
-      }
-    }
-
-    form.addEventListener("submit", function(e) {
+    form.addEventListener("submit", function (e) {
       e.preventDefault();
 
-      const straf1 = parseFloat(form.straf1.value) * 0.10;
-      const straf2 = parseFloat(form.straf2.value) * 0.10;
-      const zivil1 = parseFloat(form.zivil1.value) * 0.10;
-      const zivil2 = parseFloat(form.zivil2.value) * 0.10;
-      const oeff1 = parseFloat(form.oeff1.value) * 0.10;
-      const oeff2 = parseFloat(form.oeff2.value) * 0.10;
-      const muendlich = parseFloat(form.muendlich.value) * 0.40;
-      const schwerpunkt = parseFloat(form.schwerpunkt.value);
+      const get = name => parseFloat(form[name].value) || 0;
+      const klausuren = ["s1", "s2", "z1", "z2", "ö1", "ö2"].map(get);
+      const mp = get("mp");
+      const sp = get("sp");
 
-      const staatsteil_roh = straf1 + straf2 + zivil1 + zivil2 + oeff1 + oeff2 + muendlich;
-      const staatsteil_gewichtet = staatsteil_roh * 0.7;
-      const schwerpunkt_gewichtet = schwerpunkt * 0.3;
-      const gesamt = staatsteil_gewichtet + schwerpunkt_gewichtet;
+      const staatsteil = (
+        klausuren.reduce((a, b) => a + b, 0) * (10 / 100) +
+        mp * 0.4
+      );
 
-      const stufenInfo = berechneNotenstufe(gesamt);
+      const gesamt = staatsteil * 0.7 + sp * 0.3;
+      const gesamtGerundet = Math.round(gesamt * 100) / 100;
 
-      ergebnis.innerHTML = `
-        <div><strong>Gesamtnote: ${gesamt.toFixed(2)} Punkte</strong></div>
-        <div>Notenstufe: ${stufenInfo.stufe}</div>
-        ${stufenInfo.bisNaechste ? `<div>Noch ${stufenInfo.bisNaechste} Punkte bis "${stufenInfo.bisNaechste <= 0 ? "nächste Stufe erreicht" : stufenInfo.bisNaechste} zur nächsthöheren Stufe"</div>` : ""}
-        <br/>
-        <pre>
-Staatsteil:
-= (${form.straf1.value} + ${form.straf2.value} + ${form.zivil1.value} + ${form.zivil2.value} + ${form.oeff1.value} + ${form.oeff2.value}) * 0.10
-+ ${form.muendlich.value} * 0.40 = ${staatsteil_roh.toFixed(2)} Punkte
-→ davon 70 %: ${staatsteil_gewichtet.toFixed(2)} Punkte
+      const stufe = notenstufen.find(n => gesamtGerundet >= n.von && gesamtGerundet <= n.bis);
+      const nächste = notenstufen.find(n => n.von > gesamtGerundet);
 
-Schwerpunkt:
-= ${form.schwerpunkt.value} Punkte
-→ davon 30 %: ${schwerpunkt_gewichtet.toFixed(2)} Punkte
+      // Rechenweg
+      rechenweg.textContent = `Berechnung:
 
-Gesamtnote:
-= ${staatsteil_gewichtet.toFixed(2)} + ${schwerpunkt_gewichtet.toFixed(2)} = ${gesamt.toFixed(2)} Punkte
-        </pre>
-      `;
+Staatsteil = (${klausuren.join(" + ")} x 10%) + (${mp} x 40%) 
+            = ${staatsteil.toFixed(2)} Punkte
+
+Gesamtnote = (${staatsteil.toFixed(2)} x 70%) + (${sp} x 30%) 
+            = ${gesamtGerundet.toFixed(2)} Punkte`;
+
+      // Ergebnistext
+      noteDiv.innerHTML = `Gesamtnote: <span class="highlight">${gesamtGerundet.toFixed(2)}</span> Punkte<br />
+Notenstufe: <strong>${stufe.stufe}</strong>${nächste ? `<br />Noch ${Math.round((nächste.von - gesamtGerundet) * 100) / 100} Punkte bis "${nächste.stufe}"` : ""}`;
+
+      ergebnis.style.display = "block";
+
+      // Hervorheben der passenden Stufe
+      Array.from(skala.rows).forEach(row => {
+        row.classList.remove("active-stufe");
+        if (row.cells[0].textContent === stufe.stufe) {
+          row.classList.add("active-stufe");
+        }
+      });
+    });
+
+    // Autofokus zum nächsten Feld bei Enter
+    const inputs = Array.from(form.querySelectorAll("input"));
+    inputs.forEach((input, index) => {
+      input.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const next = inputs[index + 1];
+          if (next) next.focus();
+        }
+      });
     });
   </script>
 </body>
