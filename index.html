@@ -150,8 +150,6 @@
       const f = document.forms["notenForm"];
       const parse = (v) => parseFloat(v) || 0;
 
-      const gewichtet = (note, faktor) => note * faktor;
-
       const straf1 = parse(f.straf1.value);
       const straf2 = parse(f.straf2.value);
       const zivil1 = parse(f.zivil1.value);
@@ -161,8 +159,8 @@
       const muendlich = parse(f.muendlich.value);
       const schwerpunkt = parse(f.schwerpunkt.value);
 
-      const staatlichGesamt = (straf1 + straf2 + zivil1 + zivil2 + oeff1 + oeff2) * 0.10 + muendlich * 0.40;
-      const gesamtnote = staatlichGesamt * 0.70 + schwerpunkt * 0.30;
+      const staatsteil = (straf1 + straf2 + zivil1 + zivil2 + oeff1 + oeff2) * 0.1 + muendlich * 0.4;
+      const gesamt = staatsteil * 0.7 + schwerpunkt * 0.3;
 
       const stufe = (n) => {
         if (n >= 14) return "Sehr gut";
@@ -184,9 +182,16 @@
         return "Maximalnote erreicht";
       };
 
-      document.getElementById("ergebnis").innerText = `Gesamtnote: ${gesamtnote.toFixed(2)} (${stufe(gesamtnote)})\n${zurNaechstenStufe(gesamtnote)}`;
+      document.getElementById("ergebnis").innerText = `Gesamtnote: ${gesamt.toFixed(2)} (${stufe(gesamt)})\n${zurNaechstenStufe(gesamt)}`;
 
-      document.getElementById("formel").innerText = `Berechnung:\nStaatsteil = ((Straf I + Straf II + Zivil I + Zivil II + ÖR I + ÖR II) * 10 % + Mündl. * 40 %)\n= ((${straf1} + ${straf2} + ${zivil1} + ${zivil2} + ${oeff1} + ${oeff2}) * 0.1 + ${muendlich} * 0.4) = ${staatlichGesamt.toFixed(2)}\n\nGesamtnote = Staatsteil * 70 % + Schwerpunkt * 30 %\n= ${staatlichGesamt.toFixed(2)} * 0.7 + ${schwerpunkt} * 0.3 = ${gesamtnote.toFixed(2)}`;
+      const formelText =
+        `Berechnung:\n` +
+        `Staatsteil = ((Straf I + Straf II + Zivil I + Zivil II + ÖR I + ÖR II) * 10 % + Mündl. * 40 %)\n` +
+        `           = ((${straf1} + ${straf2} + ${zivil1} + ${zivil2} + ${oeff1} + ${oeff2}) * 0.1 + ${muendlich} * 0.4) = ${staatsteil.toFixed(2)}\n\n` +
+        `Gesamtnote = Staatsteil * 70 % + Schwerpunkt * 30 %\n` +
+        `           = ${staatsteil.toFixed(2)} * 0.7 + ${schwerpunkt} * 0.3 = ${gesamt.toFixed(2)}`;
+
+      document.getElementById("formel").innerText = formelText;
     }
 
     function resetForm() {
@@ -197,7 +202,9 @@
 
     function toggleDarkMode() {
       const current = document.documentElement.getAttribute("data-theme");
-      document.documentElement.setAttribute("data-theme", current === "dark" ? "light" : "dark");
+      const next = current === "dark" ? "light" : "dark";
+      document.documentElement.setAttribute("data-theme", next);
+      localStorage.setItem("theme", next);
     }
 
     document.getElementById("notenForm").addEventListener("submit", berechneNote);
@@ -212,6 +219,12 @@
         }
       });
     });
+
+    // Theme bei Laden anwenden
+    const gespeichertesTheme = localStorage.getItem("theme");
+    if (gespeichertesTheme) {
+      document.documentElement.setAttribute("data-theme", gespeichertesTheme);
+    }
   </script>
 </body>
 </html>
