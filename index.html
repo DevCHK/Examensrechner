@@ -2,212 +2,378 @@
 <html lang="de">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Examensrechner Sachsen-Anhalt</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Notenrechner Stex (Sachsen-Anhalt)</title>
   <style>
     :root {
-      --bg-light: #f7f7f7;
-      --bg-dark: #1e1e1e;
-      --text-light: #1e1e1e;
-      --text-dark: #f7f7f7;
-      --accent-light: #004466;
-      --accent-dark: #88c0d0;
-      --highlight: #d3a84e;
+      --accent-color: #911313; 
+      --color-bg-light: #fff;
+      --color-bg-dark: #1a1a1a;
+      --color-text-light: #222;
+      --color-text-dark: #eee;
+      --color-border-light: #ccc;
+      --color-border-dark: #555;
+      --color-highlight-bg-light: #fafafa;
+      --color-highlight-bg-dark: #2a2a2a;
     }
 
     body {
-      font-family: "Segoe UI", sans-serif;
-      background-color: var(--bg-light);
-      color: var(--text-light);
-      max-width: 600px;
-      margin: auto;
-      padding: 2em 1em;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--color-bg-light);
+      color: var(--color-text-light);
+      max-width: 700px;
+      margin: 1.5em auto;
+      padding: 0 1em 2em;
       transition: background-color 0.3s, color 0.3s;
-    }
-
-    body.dark-mode {
-      background-color: var(--bg-dark);
-      color: var(--text-dark);
     }
 
     h1 {
       text-align: center;
-      margin-bottom: 1.2em;
+      font-weight: 750;
+      font-size: 1.5rem;
+      margin-bottom: 1em;
+      color: var(--accent-color);
     }
 
     label {
       display: block;
       margin-top: 1em;
-      font-weight: bold;
+      font-weight: 500;
     }
 
-    input {
+    input[type="number"] {
       width: 100%;
-      padding: 0.6em;
-      margin-top: 0.3em;
-      font-size: 1em;
+      padding: 0.5em 0.75em;
+      margin-top: 0.25em;
+      font-size: 1rem;
+      border: 1.5px solid var(--color-border-light);
       border-radius: 6px;
-      border: 1px solid #ccc;
+      background-color: var(--color-bg-light);
+      color: var(--color-text-light);
+      transition: border-color 0.25s ease, box-shadow 0.25s ease;
+      box-sizing: border-box;
+    }
+
+    input[type="number"]:focus {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 5px 2px rgba(115, 13, 13, 0.3);
+      outline: none;
+      background-color: #fff;
     }
 
     button {
+      margin-top: 2em;
       width: 100%;
-      padding: 1em;
-      margin-top: 1.5em;
-      font-size: 1.1em;
-      background-color: var(--accent-light);
-      color: white;
-      border: none;
-      border-radius: 8px;
+      padding: 0.75em;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--accent-color);
+      background: transparent;
+      border: 2px solid var(--accent-color);
+      border-radius: 6px;
       cursor: pointer;
+      transition: background-color 0.25s ease, color 0.25s ease;
     }
 
-    body.dark-mode button {
-      background-color: var(--accent-dark);
-      color: #1e1e1e;
+    button:hover,
+    button:focus {
+      background-color: var(--accent-color);
+      color: #fff;
+      outline: none;
+    }
+
+    .reset-button {
+      margin-top: 0.75em;
+      border-color: var(--color-border-light);
+      color: var(--color-text-light);
+    }
+
+    .reset-button:hover,
+    .reset-button:focus {
+      background-color: var(--color-border-light);
+      color: var(--accent-color);
     }
 
     .result {
       margin-top: 2em;
-      font-size: 1.2em;
-      text-align: center;
+      padding: 1em 1.25em;
+      background-color: var(--color-highlight-bg-light);
+      border-radius: 6px;
+      color: var(--color-text-light);
+      box-shadow: inset 0 0 5px rgba(0,0,0,0.05);
+      white-space: pre-wrap;
+      font-family: "Segoe UI Mono", Consolas, monospace;
     }
 
-    .note-skala {
-      margin-top: 2em;
-      font-size: 0.9em;
+    .highlight {
+      font-weight: 700;
+      color: var(--accent-color);
     }
 
-    .note-skala table {
+    .notenstufe {
+      margin-top: 1.5em;
+      background-color: var(--color-highlight-bg-light);
+      border-radius: 6px;
+      padding: 0.75em 1em;
+      font-size: 0.95rem;
+      box-shadow: inset 0 0 4px rgba(0,0,0,0.05);
+    }
+
+    .notenstufe table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 0.5em;
+      font-size: 0.9rem;
     }
 
-    .note-skala th, .note-skala td {
-      border: 1px solid #999;
-      padding: 0.5em;
-      text-align: center;
+    .notenstufe th,
+    .notenstufe td {
+      padding: 0.4em 0.75em;
+      border-bottom: 1px solid var(--color-border-light);
+      text-align: left;
     }
 
-    .toggle-dark {
+    .active-stufe {
+      background-color: var(--accent-color);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    pre {
+      margin-top: 1em;
+      font-size: 0.9rem;
+      background: #eee;
+      padding: 1em;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+
+    /* Darkmode */
+    body.dark {
+      background-color: var(--color-bg-dark);
+      color: var(--color-text-dark);
+    }
+
+    body.dark input[type="number"],
+    body.dark .result,
+    body.dark pre,
+    body.dark .notenstufe {
+      background-color: var(--color-highlight-bg-dark);
+      color: var(--color-text-dark);
+      border-color: var(--color-border-dark);
+      box-shadow: none;
+    }
+
+    body.dark input[type="number"]:focus {
+      box-shadow: 0 0 5px 2px rgba(115, 13, 13, 0.6);
+    }
+
+    body.dark button {
+      color: var(--color-text-dark);
+      border-color: var(--color-border-dark);
+    }
+
+    body.dark button:hover,
+    body.dark button:focus {
+      background-color: var(--accent-color);
+      color: #fff;
+      border-color: var(--accent-color);
+    }
+
+    body.dark .notenstufe {
+      background-color: #222;
+      border-color: var(--color-border-dark);
+    }
+
+    body.dark .active-stufe {
+      background-color: var(--accent-color);
+      color: #fff;
+    }
+
+    /* Darkmode Toggle Button */
+    .dark-toggle {
       position: fixed;
-      top: 10px;
-      right: 10px;
-      background: none;
-      border: none;
+      top: 1em;
+      right: 1em;
+      background: var(--color-border-light);
+      color: var(--color-text-light);
+      border-radius: 6px;
+      padding: 0.4em 1em;
+      font-size: 1.2rem;
       cursor: pointer;
-      font-size: 1.2em;
+      user-select: none;
+      transition: background-color 0.25s ease, color 0.25s ease;
+      box-shadow: 0 0 5px rgba(0,0,0,0.1);
+      z-index: 10;
+    }
+
+    body.dark .dark-toggle {
+      background: var(--color-border-dark);
+      color: var(--color-text-dark);
     }
   </style>
 </head>
 <body>
-  <button class="toggle-dark" onclick="toggleDarkMode()">🌙</button>
-  <h1>Notenrechner Sachsen-Anhalt</h1>
+  <h1>NOTENRECHNER</h1>
+  <div class="dark-toggle" id="toggleTheme" title="Dark Mode umschalten">🌙</div>
 
   <form id="notenForm">
-    <label>Strafrecht I:
-      <input type="number" step="0.01" min="0" max="18" name="strafr1" />
+    <label for="s1">Strafrecht I:
+      <input id="s1" type="number" step="0.01" name="s1" min="0" max="18" />
     </label>
-    <label>Strafrecht II:
-      <input type="number" step="0.01" min="0" max="18" name="strafr2" />
+    <label for="s2">Strafrecht II:
+      <input id="s2" type="number" step="0.01" name="s2" min="0" max="18" />
     </label>
-    <label>Zivilrecht I:
-      <input type="number" step="0.01" min="0" max="18" name="zivilr1" />
+    <label for="z1">Zivilrecht I:
+      <input id="z1" type="number" step="0.01" name="z1" min="0" max="18" />
     </label>
-    <label>Zivilrecht II:
-      <input type="number" step="0.01" min="0" max="18" name="zivilr2" />
+    <label for="z2">Zivilrecht II:
+      <input id="z2" type="number" step="0.01" name="z2" min="0" max="18" />
     </label>
-    <label>Öffentliches Recht I:
-      <input type="number" step="0.01" min="0" max="18" name="oeffr1" />
+    <label for="ö1">Öffentliches Recht I:
+      <input id="ö1" type="number" step="0.01" name="ö1" min="0" max="18" />
     </label>
-    <label>Öffentliches Recht II:
-      <input type="number" step="0.01" min="0" max="18" name="oeffr2" />
+    <label for="ö2">Öffentliches Recht II:
+      <input id="ö2" type="number" step="0.01" name="ö2" min="0" max="18" />
     </label>
-    <label>Mündliche Prüfung:
-      <input type="number" step="0.01" min="0" max="18" name="muendlich" />
+    <label for="mp">Mündliche Prüfung:
+      <input id="mp" type="number" step="0.01" name="mp" min="0" max="18" />
     </label>
-    <label>Schwerpunktbereich:
-      <input type="number" step="0.01" min="0" max="18" name="schwerpunkt" />
+    <label for="sp">Schwerpunktbereichsnote:
+      <input id="sp" type="number" step="0.01" name="sp" min="0" max="18" />
     </label>
 
-    <button type="button" onclick="berechneNote()">Note berechnen</button>
-    <button type="reset">Zurücksetzen</button>
+    <button type="submit">Berechne Gesamtnote</button>
+    <button type="button" class="reset-button" id="resetNoten">Zurücksetzen</button>
   </form>
 
-  <div class="result" id="ausgabe"></div>
-  <div class="note-skala">
-    <h3>Notenskala</h3>
-    <table>
-      <tr><th>Gesamtnote</th><th>Bezeichnung</th></tr>
-      <tr><td>14.00 - 18.00</td><td>Sehr gut</td></tr>
-      <tr><td>11.50 - 13.99</td><td>Gut</td></tr>
-      <tr><td>9.00 - 11.49</td><td>Vollbefriedigend</td></tr>
-      <tr><td>6.50 - 8.99</td><td>Befriedigend</td></tr>
-      <tr><td>4.00 - 6.49</td><td>Ausreichend</td></tr>
-      <tr><td>1.50 - 3.99</td><td>Mangelhaft</td></tr>
-      <tr><td>0.00 - 1.49</td><td>Ungenügend</td></tr>
-    </table>
+  <div class="result" id="ergebnis" style="display:none;">
+    <div id="noteAnzeigen"></div>
+    <pre id="rechenweg"></pre>
+    <div class="notenstufe">
+      <strong>Notenskala:</strong>
+      <table id="skala" aria-label="Notenskala">
+        <tr><td>Sehr gut</td><td>14.00 – 18.00</td></tr>
+        <tr><td>Gut</td><td>11.50 – 13.99</td></tr>
+        <tr><td>Vollbefriedigend (VB)</td><td>9.00 – 11.49</td></tr>
+        <tr><td>Befriedigend</td><td>6.50 – 8.99</td></tr>
+        <tr><td>Ausreichend</td><td>4.00 – 6.49</td></tr>
+        <tr><td>Mangelhaft</td><td>1.50 – 3.99</td></tr>
+        <tr><td>Ungenügend</td><td>0.00 – 1.49</td></tr>
+      </table>
+    </div>
   </div>
 
   <script>
-    function toggleDarkMode() {
-      document.body.classList.toggle('dark-mode');
+    const form = document.getElementById("notenForm");
+    const ergebnis = document.getElementById("ergebnis");
+    const noteDiv = document.getElementById("noteAnzeigen");
+    const rechenweg = document.getElementById("rechenweg");
+    const skala = document.getElementById("skala");
+
+    const notenstufen = [
+      { stufe: "Sehr gut", von: 14.0, bis: 18.0 },
+      { stufe: "Gut", von: 11.5, bis: 13.99 },
+      { stufe: "Vollbefriedigend (VB)", von: 9.0, bis: 11.49 },
+      { stufe: "Befriedigend", von: 6.5, bis: 8.99 },
+      { stufe: "Ausreichend", von: 4.0, bis: 6.49 },
+      { stufe: "Mangelhaft", von: 1.5, bis: 3.99 },
+      { stufe: "Ungenügend", von: 0.0, bis: 1.49 }
+    ];
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const get = name => {
+        const val = parseFloat(form[name].value);
+        return isNaN(val) ? 0 : val;
+      };
+      const klausuren = ["s1", "s2", "z1", "z2", "ö1", "ö2"].map(get);
+      const mp = get("mp");
+      const sp = get("sp");
+
+      // Jede Klausur zählt 10%, zusammen 60%
+      const klausurSumme = klausuren.reduce((sum, n) => sum + n * 0.10, 0);
+      // Mündliche Prüfung zählt 40%
+      const staatsteil = klausurSumme + mp * 0.40;
+      // Gesamtnote: 70% Staatsteil + 30% Schwerpunktbereich
+      const gesamt = staatsteil * 0.70 + sp * 0.30;
+      const gesamtGerundet = Math.round(gesamt * 100) / 100;
+
+      const stufeIndex = notenstufen.findIndex(n => gesamtGerundet >= n.von && gesamtGerundet <= n.bis);
+      const stufe = stufeIndex !== -1 ? notenstufen[stufeIndex] : null;
+      const naechste = (stufeIndex !== -1 && stufeIndex > 0) ? notenstufen[stufeIndex - 1] : null;
+
+      rechenweg.textContent = `Berechnung:\n
+Klausuren: ${klausuren.map(n => n.toFixed(2)).join(" + ")} je 10% = ${klausurSumme.toFixed(2)} Punkte
+Mündliche Prüfung: ${mp.toFixed(2)} x 40% = ${(mp * 0.40).toFixed(2)} Punkte
+
+Staatsteil = ${staatsteil.toFixed(2)} Punkte
+
+Gesamtnote = (${staatsteil.toFixed(2)} x 70%) + (${sp.toFixed(2)} x 30%) 
+            = ${gesamtGerundet.toFixed(2)} Punkte`;
+
+      noteDiv.innerHTML = `Gesamtnote: <span class="highlight">${gesamtGerundet.toFixed(2)}</span> Punkte<br />
+Notenstufe: <strong>${stufe ? stufe.stufe : "Keine"}</strong>${naechste ? `<br />Noch ${Math.max(0, Math.round((naechste.von - gesamtGerundet) * 100) / 100)} Punkte bis "${naechste.stufe}"` : ""}`;
+
+      ergebnis.style.display = "block";
+      Array.from(skala.rows).forEach(row => {
+        row.classList.remove("active-stufe");
+        if (stufe && row.cells[0].textContent === stufe.stufe) {
+          row.classList.add("active-stufe");
+        }
+      });
+    });
+
+    // Eingabetasten: Enter geht zur nächsten Input-Box
+    const inputs = Array.from(form.querySelectorAll("input"));
+    inputs.forEach((input, index) => {
+      input.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const next = inputs[index + 1];
+          if (next) next.focus();
+        }
+      });
+    });
+
+    // Darkmode Handling & Toggle
+    const toggle = document.getElementById("toggleTheme");
+    const savedTheme = localStorage.getItem("theme");
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+    if ((savedTheme === "dark") || (!savedTheme && prefersDark)) {
+      document.body.classList.add("dark");
     }
 
-    function berechneNote() {
-      const f = document.forms['notenForm'];
-      const values = [
-        +f['strafr1'].value,
-        +f['strafr2'].value,
-        +f['zivilr1'].value,
-        +f['zivilr2'].value,
-        +f['oeffr1'].value,
-        +f['oeffr2'].value,
-        +f['muendlich'].value,
-        +f['schwerpunkt'].value,
-      ];
+    toggle.addEventListener("click", () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+    });
 
-      if (values.some(v => isNaN(v))) {
-        document.getElementById('ausgabe').innerHTML = '';
-        return;
-      }
+    // Noten im localStorage speichern und laden
+    const speichernNoten = () => {
+      const daten = {};
+      inputs.forEach(input => daten[input.name] = input.value);
+      localStorage.setItem("noten", JSON.stringify(daten));
+    };
 
-      const klausuren = values.slice(0, 6);
-      const muendlich = values[6];
-      const schwerpunkt = values[7];
+    const ladenNoten = () => {
+      const daten = JSON.parse(localStorage.getItem("noten") || "{}");
+      inputs.forEach(input => {
+        if (daten[input.name]) input.value = daten[input.name];
+      });
+    };
 
-      const staatsteil = (klausuren.reduce((a, b) => a + b, 0) * (10 / 100)) + muendlich * 0.4;
-      const gesamtnote = staatsteil * 0.7 + schwerpunkt * 0.3;
+    form.addEventListener("submit", speichernNoten);
+    window.addEventListener("DOMContentLoaded", ladenNoten);
 
-      let stufe = '';
-      let naechsteStufe = '';
-
-      if (gesamtnote >= 14) { stufe = 'Sehr gut'; naechsteStufe = ''; }
-      else if (gesamtnote >= 11.5) { stufe = 'Gut'; naechsteStufe = 'Sehr gut'; }
-      else if (gesamtnote >= 9.0) { stufe = 'Vollbefriedigend'; naechsteStufe = 'Gut'; }
-      else if (gesamtnote >= 6.5) { stufe = 'Befriedigend'; naechsteStufe = 'Vollbefriedigend'; }
-      else if (gesamtnote >= 4.0) { stufe = 'Ausreichend'; naechsteStufe = 'Befriedigend'; }
-      else if (gesamtnote >= 1.5) { stufe = 'Mangelhaft'; naechsteStufe = 'Ausreichend'; }
-      else { stufe = 'Ungenügend'; naechsteStufe = 'Mangelhaft'; }
-
-      let punkteZurNaechsten = '';
-      if (naechsteStufe !== '') {
-        const grenzen = { 'Sehr gut': 18, 'Gut': 14, 'Vollbefriedigend': 11.5, 'Befriedigend': 9, 'Ausreichend': 6.5, 'Mangelhaft': 4, 'Ungenügend': 1.5 };
-        punkteZurNaechsten = (grenzen[naechsteStufe] - gesamtnote).toFixed(2);
-      }
-
-      document.getElementById('ausgabe').innerHTML = `
-        <p>Gesamtnote: <strong>${gesamtnote.toFixed(2)}</strong> (${stufe})</p>
-        ${punkteZurNaechsten ? `<p>Es fehlen <strong>${punkteZurNaechsten}</strong> Punkte zur nächsten Stufe (${naechsteStufe}).</p>` : ''}
-        <p>Rechenweg:</p>
-        <pre>
-(((${klausuren.join(' + ')}) * 0.10) + (${muendlich} * 0.40)) * 0.70 + (${schwerpunkt} * 0.30)
-= ${staatsteil.toFixed(2)} * 0.70 + ${schwerpunkt.toFixed(2)} * 0.30
-= ${gesamtnote.toFixed(2)}
-        </pre>
-      `;
-    }
+    // Reset
+    document.getElementById("resetNoten").addEventListener("click", () => {
+      inputs.forEach(i => i.value = "");
+      ergebnis.style.display = "none";
+      localStorage.removeItem("noten");
+    });
   </script>
 </body>
 </html>
