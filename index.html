@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Notenrechner Stex (Sachsen-Anhalt)</title>
+  <title>Notenrechner Stex Sachsen-Anhalt</title>
   <style>
     body {
       font-family: sans-serif;
       padding: 1em;
       background-color: #f0f0f0;
-      max-width: 600px;
+      max-width: 700px;
       margin: auto;
     }
     h1 {
@@ -36,9 +36,17 @@
     }
     .result {
       margin-top: 2em;
-      font-size: 1.2em;
+      font-size: 1.1em;
       font-weight: bold;
-      text-align: center;
+      background-color: #ffffff;
+      padding: 1em;
+      border-radius: 5px;
+    }
+    pre {
+      background-color: #e0e0e0;
+      padding: 1em;
+      border-radius: 5px;
+      white-space: pre-wrap;
     }
   </style>
 </head>
@@ -46,29 +54,32 @@
   <h1>Notenrechner Sachsen-Anhalt</h1>
 
   <form id="notenForm">
-    <label>Klausur 1 (x2):
-      <input type="number" step="0.1" min="0" max="18" name="k1" required />
+    <label>Strafrecht I (10 %):
+      <input type="number" step="0.1" min="0" max="18" name="straf1" required />
     </label>
-    <label>Klausur 2 (x2):
-      <input type="number" step="0.1" min="0" max="18" name="k2" required />
+    <label>Strafrecht II (10 %):
+      <input type="number" step="0.1" min="0" max="18" name="straf2" required />
     </label>
-    <label>Klausur 3 (x2):
-      <input type="number" step="0.1" min="0" max="18" name="k3" required />
+    <label>Zivilrecht I (10 %):
+      <input type="number" step="0.1" min="0" max="18" name="zivil1" required />
     </label>
-    <label>Klausur 4 (x2):
-      <input type="number" step="0.1" min="0" max="18" name="k4" required />
+    <label>Zivilrecht II (10 %):
+      <input type="number" step="0.1" min="0" max="18" name="zivil2" required />
     </label>
-    <label>Klausur 5 (x2):
-      <input type="number" step="0.1" min="0" max="18" name="k5" required />
+    <label>Öffentliches Recht I (10 %):
+      <input type="number" step="0.1" min="0" max="18" name="oeff1" required />
     </label>
-    <label>Aktenvortrag (x1):
-      <input type="number" step="0.1" min="0" max="18" name="aktenvortrag" required />
+    <label>Öffentliches Recht II (10 %):
+      <input type="number" step="0.1" min="0" max="18" name="oeff2" required />
     </label>
-    <label>Prüfungsgespräch (x3):
-      <input type="number" step="0.1" min="0" max="18" name="mündlich" required />
+    <label>Mündliche Prüfung (40 %):
+      <input type="number" step="0.1" min="0" max="18" name="muendlich" required />
+    </label>
+    <label>Schwerpunktarbeit (30 % der Gesamtnote):
+      <input type="number" step="0.1" min="0" max="18" name="schwerpunkt" required />
     </label>
 
-    <button type="submit">Note berechnen</button>
+    <button type="submit">Gesamtnote berechnen</button>
   </form>
 
   <div class="result" id="ergebnis"></div>
@@ -80,18 +91,38 @@
     form.addEventListener("submit", function(e) {
       e.preventDefault();
 
-      const k1 = parseFloat(form.k1.value) * 2;
-      const k2 = parseFloat(form.k2.value) * 2;
-      const k3 = parseFloat(form.k3.value) * 2;
-      const k4 = parseFloat(form.k4.value) * 2;
-      const k5 = parseFloat(form.k5.value) * 2;
-      const aktenvortrag = parseFloat(form.aktenvortrag.value) * 1;
-      const mündlich = parseFloat(form.mündlich.value) * 3;
+      const straf1 = parseFloat(form.straf1.value) * 0.10;
+      const straf2 = parseFloat(form.straf2.value) * 0.10;
+      const zivil1 = parseFloat(form.zivil1.value) * 0.10;
+      const zivil2 = parseFloat(form.zivil2.value) * 0.10;
+      const oeff1 = parseFloat(form.oeff1.value) * 0.10;
+      const oeff2 = parseFloat(form.oeff2.value) * 0.10;
+      const muendlich = parseFloat(form.muendlich.value) * 0.40;
+      const schwerpunkt = parseFloat(form.schwerpunkt.value);
 
-      const gesamt = k1 + k2 + k3 + k4 + k5 + aktenvortrag + mündlich;
-      const schnitt = gesamt / 14;
+      const staatsteil_roh = straf1 + straf2 + zivil1 + zivil2 + oeff1 + oeff2 + muendlich;
+      const staatsteil_gewichtet = staatsteil_roh * 0.7;
+      const schwerpunkt_gewichtet = schwerpunkt * 0.3;
+      const gesamt = staatsteil_gewichtet + schwerpunkt_gewichtet;
 
-      ergebnis.innerText = `Deine Durchschnittspunktzahl: ${schnitt.toFixed(2)} Punkte`;
+      ergebnis.innerHTML = `
+        <div>🎓 <strong>Gesamtnote: ${gesamt.toFixed(2)} Punkte</strong></div>
+        <br/>
+        <div>📊 <u>Rechenweg:</u></div>
+        <pre>
+Staatsteil:
+= (${form.straf1.value}×10% + ${form.straf2.value}×10% + ${form.zivil1.value}×10% + ${form.zivil2.value}×10% + ${form.oeff1.value}×10% + ${form.oeff2.value}×10% + ${form.muendlich.value}×40%)
+= ${staatsteil_roh.toFixed(2)} Punkte
+→ 70 % davon: ${staatsteil_gewichtet.toFixed(2)} Punkte
+
+Schwerpunkt:
+= ${form.schwerpunkt.value} Punkte
+→ 30 % davon: ${schwerpunkt_gewichtet.toFixed(2)} Punkte
+
+Gesamtnote:
+= ${staatsteil_gewichtet.toFixed(2)} + ${schwerpunkt_gewichtet.toFixed(2)} = ${gesamt.toFixed(2)} Punkte
+        </pre>
+      `;
     });
   </script>
 </body>
