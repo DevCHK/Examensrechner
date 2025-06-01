@@ -47,4 +47,52 @@
 
   <form id="notenForm">
     <label>Klausur 1 (x2):
-      <input typ
+      <input type="number" step="0.1" min="0" max="18" name="k1" required />
+    </label>
+    <label>Klausur 2 (x2):
+      <input type="number" step="0.1" min="0" max="18" name="k2" required />
+    </label>
+    <label>Klausur 3 (x2):
+      <input type="number" step="0.1" min="0" max="18" name="k3" required />
+    </label>
+    <label>Klausur 4 (x2):
+      <input type="number" step="0.1" min="0" max="18" name="k4" required />
+    </label>
+    <label>Klausur 5 (x2):
+      <input type="number" step="0.1" min="0" max="18" name="k5" required />
+    </label>
+    <label>Aktenvortrag (x1):
+      <input type="number" step="0.1" min="0" max="18" name="aktenvortrag" required />
+    </label>
+    <label>Prüfungsgespräch (x3):
+      <input type="number" step="0.1" min="0" max="18" name="mündlich" required />
+    </label>
+
+    <button type="submit">Note berechnen</button>
+  </form>
+
+  <div class="result" id="ergebnis"></div>
+
+  <script>
+    const form = document.getElementById("notenForm");
+    const ergebnis = document.getElementById("ergebnis");
+
+    form.addEventListener("submit", function(e) {
+      e.preventDefault();
+
+      const k1 = parseFloat(form.k1.value) * 2;
+      const k2 = parseFloat(form.k2.value) * 2;
+      const k3 = parseFloat(form.k3.value) * 2;
+      const k4 = parseFloat(form.k4.value) * 2;
+      const k5 = parseFloat(form.k5.value) * 2;
+      const aktenvortrag = parseFloat(form.aktenvortrag.value) * 1;
+      const mündlich = parseFloat(form.mündlich.value) * 3;
+
+      const gesamt = k1 + k2 + k3 + k4 + k5 + aktenvortrag + mündlich;
+      const schnitt = gesamt / 14;
+
+      ergebnis.innerText = `Deine Durchschnittspunktzahl: ${schnitt.toFixed(2)} Punkte`;
+    });
+  </script>
+</body>
+</html>
